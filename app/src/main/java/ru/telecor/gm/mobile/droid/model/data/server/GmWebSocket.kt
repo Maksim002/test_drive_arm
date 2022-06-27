@@ -87,14 +87,14 @@ class GmWebSocket @Inject constructor(
                 val msg = Gson().fromJson(text, WebSocketMsg::class.java)
                 val msgTalon = Gson().fromJson(text, WebSocketTalon::class.java)
 
-                if (msgTalon.command!!.action != CommandActionEnum.attachWeighing.toString()){
+                if (msgTalon.command?.action != CommandActionEnum.attachWeighing.toString()){
                     if (msg.command.action == CommandActionEnum.update) {
                         onMessageReceived?.invoke(msg)
                     }
 
                     val gmResponse = Gson().toJson(GmSocketResponse(msg.id, msg.unitId))
                     webSocket.send(gmResponse)
-                }else if (msgTalon.command!!.action == CommandActionEnum.attachWeighing.toString()){
+                }else if (msgTalon.command?.action == CommandActionEnum.attachWeighing.toString()){
                     onTalonListener?.invoke(msgTalon)
 
                     val gmResponse = Gson().toJson(GmSocketResponse(msgTalon.id!!, msgTalon.unitId!!))
