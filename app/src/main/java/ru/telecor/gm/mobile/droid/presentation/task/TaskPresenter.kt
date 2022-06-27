@@ -297,7 +297,7 @@ class TaskPresenter @Inject constructor(
                 supportedGarbageType,
                 null,
                 localTaskCache.taskItems.filter { ti -> ti.containerTypeId == it.containerType.id },
-                trDraft
+                taskDraftData = trDraft
             )
         }.toMutableList()
 

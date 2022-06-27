@@ -6,17 +6,19 @@ import android.view.ViewGroup
 import com.bumptech.glide.Glide
 import kotlinx.android.synthetic.main.item_completed_photo.*
 import ru.telecor.gm.mobile.droid.R
-import ru.telecor.gm.mobile.droid.entities.db.ProcessingPhoto
+import ru.telecor.gm.mobile.droid.entities.TaskItemPhotoModel
 import ru.telecor.gm.mobile.droid.ui.base.rv.BaseViewHolder
 
 class TaskCompletedPhotoViewHolder(override val containerView: View) :
-    BaseViewHolder<ProcessingPhoto>(containerView) {
+    BaseViewHolder<TaskItemPhotoModel>(containerView) {
 
-    override fun bind(entity: ProcessingPhoto) {
-        Glide.with(containerView.context)
-            .load(entity.photoPath)
-            .centerCrop()
-            .into(ivPhoto)
+    override fun bind(entity: TaskItemPhotoModel) {
+        entity.entity.forEach {
+            Glide.with(containerView.context)
+                .load(it.photoPath)
+                .centerCrop()
+                .into(ivPhoto)
+        }
     }
 
     companion object {

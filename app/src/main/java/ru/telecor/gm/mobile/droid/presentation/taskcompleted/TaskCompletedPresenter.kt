@@ -6,9 +6,11 @@ import kotlinx.coroutines.runBlocking
 import ru.telecor.gm.mobile.droid.R
 import ru.telecor.gm.mobile.droid.entities.db.ProcessingPhoto
 import ru.telecor.gm.mobile.droid.entities.StatusType
+import ru.telecor.gm.mobile.droid.entities.TaskItemPhotoModel
 import ru.telecor.gm.mobile.droid.entities.TaskItemPreviewData
 import ru.telecor.gm.mobile.droid.entities.db.TaskProcessingResult
 import ru.telecor.gm.mobile.droid.entities.db.TaskExtended
+import ru.telecor.gm.mobile.droid.entities.task.TaskRelations
 import ru.telecor.gm.mobile.droid.model.PhotoType
 import ru.telecor.gm.mobile.droid.model.interactors.PhotoInteractor
 import ru.telecor.gm.mobile.droid.model.interactors.RouteInteractor
@@ -26,6 +28,7 @@ class TaskCompletedPresenter @Inject constructor(
     private var deliveredTask: TaskProcessingResult? = null
 
     var taskId: Int = -1
+    var setListTask: List<TaskRelations> = arrayListOf()
 
     override fun attachView(view: TaskCompletedView?) {
         super.attachView(view)
@@ -48,9 +51,6 @@ class TaskCompletedPresenter @Inject constructor(
 
     private fun clearUI() {
         viewState.setAddress("")
-        viewState.setStatus("")
-        viewState.setContainerReason(false)
-        viewState.setReason("")
         viewState.setContainersList(emptyList())
         viewState.showListOfAfterPhoto(emptyList())
         viewState.showListOfBeforePhoto(emptyList())
@@ -64,9 +64,6 @@ class TaskCompletedPresenter @Inject constructor(
 
     private fun setActualInfo() {
         viewState.setAddress(localTaskCache.stand?.address ?: "")
-        viewState.setStatus(getStatus(localTaskCache.statusType))
-        viewState.setContainerReason(localTaskCache.statusType == StatusType.PARTIALLY)
-        viewState.setReason(deliveredTask?.failureReason?.name ?: "")
         val ctList = localTaskCache.stand?.containerGroups?.filter { cg ->
             localTaskCache.taskItems.map { ti -> ti.containerTypeId }.toList()
                 .contains(cg.containerType.id)
@@ -82,15 +79,24 @@ class TaskCompletedPresenter @Inject constructor(
                 if (supportedGarbageType) localTaskCache.taskItems.filter { ti -> ti.containerTypeId == it.containerType.id }
                     .map { item -> item.planCount }.sum() else it.count,
                 // TODO: нужно тут поставить определитель ilim continue
-                supportedGarbageType
+                supportedGarbageType,
+                statusType = getStatus(localTaskCache.statusType),
+                failureReason = deliveredTask?.failureReason?.name ?: ""
             )
         }.toMutableList()
 
         viewState.setContainersList(finalList.sortedByDescending { it.supportedGarbageType.toString() })
-        viewState.showListOfAfterPhoto(getPhotoList(PhotoType.LOAD_AFTER))
-        viewState.showListOfBeforePhoto(getPhotoList(PhotoType.LOAD_BEFORE))
-        viewState.showListOfTroublePhoto(getPhotoList(PhotoType.LOAD_TROUBLE))
-        viewState.showListOfTroubleTaskPhoto(getPhotoList(PhotoType.TASK_TROUBLE))
+        viewState.showListOfAfterPhoto(
+            arrayListOf(TaskItemPhotoModel(getPhotoList(PhotoType.LOAD_AFTER), PhotoType.LOAD_AFTER.toString()))
+        )
+        viewState.showListOfBeforePhoto(
+            arrayListOf(TaskItemPhotoModel(getPhotoList(PhotoType.LOAD_BEFORE), PhotoType.LOAD_BEFORE.toString()))
+        )
+        viewState.showListOfTroublePhoto(
+            arrayListOf(TaskItemPhotoModel(getPhotoList(PhotoType.LOAD_TROUBLE), PhotoType.LOAD_TROUBLE.toString())))
+
+        viewState.showListOfTroubleTaskPhoto(
+            arrayListOf(TaskItemPhotoModel(getPhotoList(PhotoType.TASK_TROUBLE), PhotoType.TASK_TROUBLE.toString())))
     }
 
     private fun getPhotoList(photoType: PhotoType): List<ProcessingPhoto> {

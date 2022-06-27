@@ -13,5 +13,7 @@ data class TaskItemPreviewData(
     var supportedGarbageType: Boolean = true,
     var taskRelations: TaskRelations? = null,
     var task: List<TaskItem>? = null,
+    var statusType: String? = null,
+    var failureReason: String? = null,
     var taskDraftData: TaskDraftProcessingResult? = null
 )
