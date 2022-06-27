@@ -13,6 +13,7 @@ import ru.telecor.gm.mobile.droid.model.interactors.PhotoInteractor
 import ru.telecor.gm.mobile.droid.model.interactors.RouteInteractor
 import ru.telecor.gm.mobile.droid.model.system.ResourceManager
 import ru.telecor.gm.mobile.droid.presentation.base.BasePresenter
+import ru.telecor.gm.mobile.droid.ui.utils.LocationUtils
 import ru.telecor.gm.mobile.droid.utils.DataStorageManager
 import ru.telecor.gm.mobile.droid.utils.dateTime
 import java.io.File

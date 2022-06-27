@@ -24,6 +24,8 @@ import ru.telecor.gm.mobile.droid.presentation.photoMake.PhotoMakePresenter
 import ru.telecor.gm.mobile.droid.presentation.photoMake.PhotoMakeView
 import ru.telecor.gm.mobile.droid.ui.base.BaseActivity
 import ru.telecor.gm.mobile.droid.ui.photo.PhotoActivity
+import ru.telecor.gm.mobile.droid.ui.utils.LocationUtils
+import ru.telecor.gm.mobile.droid.utils.conect
 import timber.log.Timber
 import toothpick.Toothpick
 import java.io.File
@@ -89,6 +91,20 @@ class PhotoMakeGeneralActivity : BaseActivity(), PhotoMakeView {
         super.onDestroy()
         cameraExecutor.shutdown()
     }
+
+    override fun onAttachedToWindow() {
+        super.onAttachedToWindow()
+        if (conect(this, this)){
+            try {
+                presenter.photoLocation =
+                    LocationUtils.getBestLocation(
+                        this
+                    )
+            }catch (e: Exception){Timber.e(e)}
+
+        }
+    }
+
 
     private fun startCamera() {
         val cameraProviderFeature = ProcessCameraProvider.getInstance(this)
@@ -212,6 +228,7 @@ class PhotoMakeGeneralActivity : BaseActivity(), PhotoMakeView {
             }
             tempFile.copyTo(photoFile, true)
             setResult(RESULT_OK)
+
             presenter.onPhotoDone(photoFile)
         }catch (e: Exception){
             Timber.e(e)
