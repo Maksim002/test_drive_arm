@@ -1,24 +1,42 @@
 package ru.telecor.gm.mobile.droid.ui.taskcompleted
 
 import android.os.Bundle
+import android.os.Handler
 import android.view.View
+import androidx.core.content.ContextCompat
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.nhaarman.supertooltips.ToolTip
 import kotlinx.android.synthetic.main.fragment_task_completed.*
+import kotlinx.android.synthetic.main.fragment_task_completed.iconTorsoLay
+import kotlinx.android.synthetic.main.fragment_task_completed.layoutIconLay
+import kotlinx.android.synthetic.main.fragment_task_completed.layoutTask
+import kotlinx.android.synthetic.main.fragment_task_completed.messageCon
 import kotlinx.android.synthetic.main.fragment_task_completed.pbLoading
+import kotlinx.android.synthetic.main.fragment_task_completed.troubleArrowBack
+import kotlinx.android.synthetic.main.fragment_task_completed.troubleContainerTask
 import kotlinx.android.synthetic.main.fragment_task_completed.troubleRvUpContainers
+import kotlinx.android.synthetic.main.fragment_task_completed.troubleTaskDetailsIm
+import kotlinx.android.synthetic.main.fragment_task_completed.troubleTvAddress
 import kotlinx.android.synthetic.main.fragment_task_completed.tvCustomer
+import kotlinx.android.synthetic.main.fragment_task_completed.tvTroubleFactTimeText
+import kotlinx.android.synthetic.main.fragment_task_completed.tvTroublePreferredTimeText
+import kotlinx.android.synthetic.main.fragment_task_completed.tvTroublePriority
+import kotlinx.android.synthetic.main.fragment_task_completed.tvTroubleUserCommentText
+import kotlinx.android.synthetic.main.fragment_task_completed.tvTroubleUserPhoneText
 import moxy.presenter.InjectPresenter
 import moxy.presenter.ProvidePresenter
 import ru.telecor.gm.mobile.droid.R
 import ru.telecor.gm.mobile.droid.di.Scopes
-import ru.telecor.gm.mobile.droid.entities.TaskItemPhotoModel
 import ru.telecor.gm.mobile.droid.entities.TaskItemPreviewData
+import ru.telecor.gm.mobile.droid.entities.db.ProcessingPhoto
 import ru.telecor.gm.mobile.droid.entities.task.TaskRelations
 import ru.telecor.gm.mobile.droid.extensions.emptyIfNull
 import ru.telecor.gm.mobile.droid.extensions.visible
 import ru.telecor.gm.mobile.droid.presentation.taskcompleted.TaskCompletedPresenter
 import ru.telecor.gm.mobile.droid.presentation.taskcompleted.TaskCompletedView
 import ru.telecor.gm.mobile.droid.ui.base.BaseFragment
+import ru.telecor.gm.mobile.droid.ui.login.fragment.setting.settingFunctionality.SettingBottomSheetFragment
 import ru.telecor.gm.mobile.droid.ui.taskcompleted.rv.TaskCompletedAdapter
 import ru.telecor.gm.mobile.droid.ui.taskcompleted.rv.TaskCompletedPhotoAdapter
 import ru.telecor.gm.mobile.droid.utils.millisecondsDate
@@ -30,17 +48,19 @@ class TaskCompletedFragment : BaseFragment(), TaskCompletedView {
 
     private var setListTask: List<TaskRelations> = arrayListOf()
     private var setTaskId = 0
+    private var addressTxt = ""
 
     companion object {
         private const val TASK_ID_KEY = "taskid"
 
-        fun newInstance(taskId: Int, listTask: List<TaskRelations>) = TaskCompletedFragment().apply {
-            arguments = Bundle().apply {
-                putInt(TASK_ID_KEY, taskId)
-                setTaskId = taskId
+        fun newInstance(taskId: Int, listTask: List<TaskRelations>) =
+            TaskCompletedFragment().apply {
+                arguments = Bundle().apply {
+                    putInt(TASK_ID_KEY, taskId)
+                    setTaskId = taskId
+                }
+                setListTask = listTask
             }
-            setListTask = listTask
-        }
     }
 
     override val layoutRes = R.layout.fragment_task_completed
@@ -88,8 +108,55 @@ class TaskCompletedFragment : BaseFragment(), TaskCompletedView {
         troubleArrowBack.setOnClickListener {
             requireActivity().onBackPressed()
         }
+
+        troubleBtnSettings.setOnClickListener {
+            presenter.onSettingsClicked()
+        }
+
+        //Всплывающее сообщение с адресом
+        troubleTvAddress.setOnClickListener {
+            if (addressTxt != "") {
+                val toolTip = ToolTip()
+                    .withText(addressTxt)
+                    .withColor(resources.getColor(R.color.gray2))
+
+                val message = addressMessage.showToolTipForView(toolTip, addressMessage)
+                Handler().postDelayed({
+                    message.remove()
+                }, 1300)
+            } else if (addressTxt == "") {
+                showMessage("Адрес пусть")
+            }
+        }
+
+        layoutTask.setOnClickListener {
+            if (troubleContainerTask.isVisible) {
+                troubleTaskDetailsIm.setImageDrawable(
+                    ContextCompat.getDrawable(
+                        requireContext(),
+                        R.drawable.ic_baseline_arrow_drop_down_24
+                    )
+                )
+                troubleContainerTask.isVisible = false
+            } else {
+                troubleTaskDetailsIm.setImageDrawable(
+                    ContextCompat.getDrawable(
+                        requireContext(),
+                        R.drawable.ic_baseline_arrow_drop_up_24
+                    )
+                )
+                troubleContainerTask.isVisible = true
+            }
+        }
     }
+
+    override fun showSettingsMenu() {
+        val bottomSheetDialogFragment = SettingBottomSheetFragment()
+        bottomSheetDialogFragment.show(requireActivity().supportFragmentManager, bottomSheetDialogFragment.tag)
+    }
+
     override fun setAddress(str: String) {
+        addressTxt = str
         troubleTvAddress.text = str
     }
 
@@ -98,11 +165,11 @@ class TaskCompletedFragment : BaseFragment(), TaskCompletedView {
         troubleRvUpContainers.adapter = adapters
     }
 
-    private fun setItemTask(listTask: List<TaskRelations>, taskId: Int){
-        if (listTask.isNotEmpty() && taskId.toString().isNotEmpty()){
-            val task = listTask.first{ it.task.id == taskId}
+    private fun setItemTask(listTask: List<TaskRelations>, taskId: Int) {
+        if (listTask.isNotEmpty() && taskId.toString().isNotEmpty()) {
+            val task = listTask.first { it.task.id == taskId }
 
-            if (task.task.priority != null){
+            if (task.task.priority != null) {
                 messageCon.visible(task.task.priority.name.isNotEmpty())
                 tvTroublePriority.text = task.task.priority.name ?: ""
             }
@@ -122,48 +189,60 @@ class TaskCompletedFragment : BaseFragment(), TaskCompletedView {
             val finText = oneText.replace("]", "")
             tvCustomer.text = finText
 
-            if (task.task.contactPhone != null){
+            if (task.task.contactPhone != null) {
                 iconTorsoLay.visible(task.task.contactPhone.isNotEmpty())
                 tvTroubleUserPhoneText.text = task.task.contactPhone.emptyIfNull()
             }
 
-            if (task.task.comment != null){
+            if (task.task.comment != null) {
                 layoutIconLay.visible(task.task.comment.isNotEmpty())
                 tvTroubleUserCommentText.text = task.task.comment.emptyIfNull()
+            }
+
+            statusText.text = presenter.getStatus(task.task.statusType)
+
+            when (presenter.getStatus(task.task.statusType)) {
+                "Успешно" -> {
+                    statusIm.setImageDrawable(ContextCompat.getDrawable(requireContext(), R.drawable.ic_check_mark))
+                    statusText.setTextColor(ContextCompat.getColor(requireContext(), R.color.grey_color))
+                    statusText.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.grey_color_alpha))
+                }
+                "Частично успешно" -> {
+                    statusIm.setImageDrawable(ContextCompat.getDrawable(requireContext(), R.drawable.ic_oreng_marker))
+                    statusText.setTextColor(ContextCompat.getColor(requireContext(), R.color.yellow_color))
+                    statusText.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.yellow_color_alpha))
+                }
+                "Невывоз" -> {
+                    statusIm.setImageDrawable(ContextCompat.getDrawable(requireContext(), R.drawable.ic_non_pickup))
+                    statusText.setTextColor(ContextCompat.getColor(requireContext(), R.color.black_to_red_color))
+                    statusText.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.black_to_red_color_alpha))
+                }
             }
         }
     }
 
-    override fun showListOfBeforePhoto(list: List<TaskItemPhotoModel>) {
-        list.forEach {
-            beforeRecyclerAdapter.setList(list)
-            tvBefore.visible(it.entity.isNotEmpty())
-            rvBeforePhotos.visible(it.entity.isNotEmpty())
-        }
+    override fun showListOfBeforePhoto(list: List<ProcessingPhoto>) {
+        beforeRecyclerAdapter.setList(list)
+        tvBefore.visible(list.isNotEmpty())
+        rvBeforePhotos.visible(list.isNotEmpty())
     }
 
-    override fun showListOfAfterPhoto(list: List<TaskItemPhotoModel>) {
-        list.forEach {
-            afterRecyclerAdapter.setList(list)
-            tvAfter.visible(it.entity.isNotEmpty())
-            rvAfterPhotos.visible(it.entity.isNotEmpty())
-        }
+    override fun showListOfAfterPhoto(list: List<ProcessingPhoto>) {
+        afterRecyclerAdapter.setList(list)
+        tvAfter.visible(list.isNotEmpty())
+        rvAfterPhotos.visible(list.isNotEmpty())
     }
 
-    override fun showListOfTroublePhoto(list: List<TaskItemPhotoModel>) {
-        list.forEach {
-            troubleRecyclerAdapter.setList(list)
-            tvTrouble.visible(it.entity.isNotEmpty())
-            rvTroublePhotos.visible(it.entity.isNotEmpty())
-        }
+    override fun showListOfTroublePhoto(list: List<ProcessingPhoto>) {
+        troubleRecyclerAdapter.setList(list)
+        tvTrouble.visible(list.isNotEmpty())
+        rvTroublePhotos.visible(list.isNotEmpty())
     }
 
-    override fun showListOfTroubleTaskPhoto(list: List<TaskItemPhotoModel>) {
-        list.forEach {
-            troubleTaskRecyclerAdapter.setList(list)
-            tvTroubleTask.visible(it.entity.isNotEmpty())
-            rvTroubleTaskPhotos.visible(it.entity.isNotEmpty())
-        }
+    override fun showListOfTroubleTaskPhoto(list: List<ProcessingPhoto>) {
+        troubleTaskRecyclerAdapter.setList(list)
+        tvTroubleTask.visible(list.isNotEmpty())
+        rvTroubleTaskPhotos.visible(list.isNotEmpty())
     }
 
     override fun setLoadingState(value: Boolean) {

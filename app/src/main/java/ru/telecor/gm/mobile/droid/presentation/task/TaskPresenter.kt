@@ -283,17 +283,15 @@ class TaskPresenter @Inject constructor(
                 if (tD.id == localTaskCache.id.toLong()) trDraft = tD
             }
         }
-        var finalList = ctList.map {
+        val finalList = ctList.map {
             val supportedGarbageType =
                 if (supportedGarbageTypes != null) it.garbageType.id in supportedGarbageTypes else true
             TaskItemPreviewData(
                 it.containerType,
                 it.garbageType,
                 localTaskCache.containerAction,
-                // TODO: 27.05.2022 Заполняет модель коментариями, рнаботает не правельно
                 if (supportedGarbageType) localTaskCache.taskItems.filter { ti -> ti.containerTypeId == it.containerType.id }
                     .map { item -> item.planCount }.sum() else it.count,
-                // TODO: нужно тут поставить определитель ilim continue
                 supportedGarbageType,
                 null,
                 localTaskCache.taskItems.filter { ti -> ti.containerTypeId == it.containerType.id },
