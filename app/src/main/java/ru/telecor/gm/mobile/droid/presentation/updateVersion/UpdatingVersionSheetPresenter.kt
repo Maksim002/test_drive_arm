@@ -37,25 +37,15 @@ class UpdatingVersionSheetPresenter @Inject constructor(
             handleResult(res, {
                 viewState.setNewestVersion(it.data.toString(), version)
                 if (!autoCheck) {
-                    if (version.localName == gmServerPrefs.getGmBuildCon().buildVersion && it.data.toString() != BuildConfig.VERSION_NAME ){
+                    if (version.localName != gmServerPrefs.getGmBuildCon().buildVersion){
                         viewState.showUpdateDialog(version)
-                        //Сохраняем последнюю версию приложения
-                        setLatestVersion(it.data.toString())
-                    }else if (!autoCheck && it.data.toString() != BuildConfig.VERSION_NAME && version != BuildVersion.BETA){
+                    }else if (it.data.toString() != BuildConfig.VERSION_NAME && version == BuildVersion.BETA){
                         viewState.showUpdateDialog(version)
-                        //Сохраняем последнюю версию приложения
-                        setLatestVersion(it.data.toString())
-                    }else if (!autoCheck && it.data.toString() != BuildConfig.VERSION_NAME && version == BuildVersion.BETA){
-                        viewState.showUpdateDialog(version)
-                        //Сохраняем последнюю версию приложения
-                        setLatestVersion(it.data.toString())
                     }
                 } else {
-//                    if (!autoCheck && it.data.biggerThan(BuildConfig.VERSION_NAME) && version != BuildVersion.BETA) {
-//                        viewState.showUpdateDialog(version)
-//                        //Сохраняем последнюю версию приложения
-//                        setLatestVersion(it.data.toString())
-//                    }
+                    if (it.data.biggerThan(BuildConfig.VERSION_NAME) && version == BuildVersion.ALPHA) {
+                        viewState.showUpdateDialog(version)
+                    }
                 }
             }, { handleError(it, rm) })
             viewState.setLoadingState(false, version)
