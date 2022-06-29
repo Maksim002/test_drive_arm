@@ -480,8 +480,6 @@ class RouteRepository @Inject constructor(
 
 
         val tasks = api.getRouteTasks(routeId)
-//        val tasks = api.getRouteTasks(4435)
-        tasks
         val stands = api.getRouteStands(routeId)
         val visitPointsResult = commonDataRepository.getVisitPoints()
         val extendedTasks: MutableList<TaskExtended>
@@ -547,45 +545,49 @@ class RouteRepository @Inject constructor(
 
         }.toMutableList()
 
+        if (extendedTasks.size > 0){
 
-        val oldRouteTasksIds = currentRouteTasksCache?.map { it.id } ?: listOf()
+            val oldRouteTasksIds = currentRouteTasksCache?.map { it.id } ?: listOf()
 
-        val newTasks =
-            extendedTasks.filter { it.id !in oldRouteTasksIds && it.id !in idsInProcessing }
+            val newTasks =
+                extendedTasks.filter { it.id !in oldRouteTasksIds && it.id !in idsInProcessing }
 
-        val deletedTasks =
-            currentRouteTasksCache?.filter { it.id !in extendedTasks.map { new -> new.id } && it.id !in idsInProcessing }
+            val deletedTasks =
+                currentRouteTasksCache?.filter { it.id !in extendedTasks.map { new -> new.id } && it.id !in idsInProcessing }
 
-        currentRouteTasksCache = extendedTasks
+            currentRouteTasksCache = extendedTasks
 
-        CoroutineScope(Dispatchers.IO).launch {
-            extendedTasks.let { allTask ->
-                allTask.map { exsTask ->
-                    val oldTask = currentRouteTasksCache?.find { it.id == exsTask.id }
-                    oldTask?.let { ot ->
-                      if (ot.changeTime != exsTask.changeTime)
-                        taskExtendedDao.update(oldTask.copy(changeTime = exsTask.changeTime))
+            CoroutineScope(Dispatchers.IO).launch {
+                extendedTasks.let { allTask ->
+                    allTask.map { exsTask ->
+                        val oldTask = currentRouteTasksCache?.find { it.id == exsTask.id }
+                        oldTask?.let { ot ->
+                            if (ot.changeTime != exsTask.changeTime)
+                                taskExtendedDao.update(oldTask.copy(changeTime = exsTask.changeTime))
+                        }
+                    }
+                }
+                deletedTasks?.let { taskExtendedDao.deleteAll(it) }
+                newTasks?.let { taskExtendedDao.insertAll(newTasks) }
+                extendedTasks.filter { it.id in oldRouteTasksIds }.map { extask ->
+                    val existTask = taskExtendedDao.getById(extask.id)
+                    if (existTask != null) {
+                        if (
+                            existTask.order != extask.order && currentTaskCache?.id != extask.id
+                        ) {
+                            taskExtendedDao.update(existTask.copy(order = extask.order))
+                        }
                     }
                 }
             }
-            deletedTasks?.let { taskExtendedDao.deleteAll(it) }
-            newTasks?.let { taskExtendedDao.insertAll(newTasks) }
-            extendedTasks.filter { it.id in oldRouteTasksIds }.map { extask ->
-                val existTask = taskExtendedDao.getById(extask.id)
-                if (existTask != null) {
-                    if (
-                        existTask.order != extask.order && currentTaskCache?.id != extask.id
-                    ) {
-                        taskExtendedDao.update(existTask.copy(order = extask.order))
-                    }
-                }
+
+            if (extendedTasks.size > 0) {
+                recalculateCurrentTask()
             }
+
         }
 
-        if (extendedTasks.size > 0) {
-            recalculateCurrentTask()
-        }
-        return@safeApiCall extendedTasks
+        return@safeApiCall currentRouteTasksCache ?: extendedTasks
     }
 
     private fun isPolygon(visitPoint: VisitPoint?): Boolean =

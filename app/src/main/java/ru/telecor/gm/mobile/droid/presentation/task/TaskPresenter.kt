@@ -334,17 +334,19 @@ class TaskPresenter @Inject constructor(
     }
 
     fun navigatorButtonClicked() {
-        localTaskCache.stand?.let {
-            viewState.startNavigationApplication(
-                it.latitude,
-                it.longitude
-            )
-        }
-        localTaskCache.visitPoint?.let {
-            viewState.startNavigationApplication(
-                it.latitude,
-                it.longitude
-            )
+        if(::localTaskCache.isInitialized){
+            localTaskCache.stand?.let {
+                viewState.startNavigationApplication(
+                    it.latitude,
+                    it.longitude
+                )
+            }
+            localTaskCache.visitPoint?.let {
+                viewState.startNavigationApplication(
+                    it.latitude,
+                    it.longitude
+                )
+            }
         }
     }
 
