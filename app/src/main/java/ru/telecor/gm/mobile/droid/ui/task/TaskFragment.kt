@@ -473,7 +473,6 @@ class TaskFragment : BaseFragment(), TaskView {
                 presenter.onPolygonDestinationDialogCancelled()
             }
             .show()
-
     }
 
     override fun showPolygonSelectionEnsureDialog(selected: VisitPoint) {

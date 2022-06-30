@@ -291,7 +291,7 @@ class TaskPresenter @Inject constructor(
                 if (tD.id == localTaskCache.id.toLong()) trDraft = tD
             }
         }
-        var finalList = ctList.map {
+        val finalList = ctList.map {
             val supportedGarbageType =
                 if (supportedGarbageTypes != null) it.garbageType.id in supportedGarbageTypes else true
             TaskItemPreviewData(
@@ -303,7 +303,7 @@ class TaskPresenter @Inject constructor(
                 supportedGarbageType,
                 null,
                 localTaskCache.taskItems.filter { ti -> ti.containerTypeId == it.containerType.id },
-                trDraft
+                taskDraftData = trDraft
             )
         }.toMutableList()
 

@@ -38,12 +38,15 @@
     <color name="green_text">#269E34</color>
     <color name="black_color">#000000</color>
     <color name="black_to_red_color">#C22F33</color>
+    <color name="black_to_red_color_alpha">#FFEAEA</color>
     <color name="blue_color">#0CBCEC</color>
     <color name="color_text_w">#2D86D9</color>
     <color name="color_pale_blue">#C7E2F6</color>
     <color name="grey_color">#269E34</color>
+    <color name="grey_color_alpha">#E2FAE5</color>
     <color name="shining_grey_color">#6DC13A</color>
     <color name="yellow_color">#F8B300</color>
+    <color name="yellow_color_alpha">#FBF5DD</color>
     <color name="purple_color">#9B60A7</color>
     <color name="lilac_color">#A951BB</color>
     <color name="color_text_light_blue">#0CBCEC</color>

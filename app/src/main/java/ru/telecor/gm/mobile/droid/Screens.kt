@@ -3,6 +3,7 @@ package ru.telecor.gm.mobile.droid
 import android.content.Context
 import android.content.Intent
 import androidx.fragment.app.Fragment
+import ru.telecor.gm.mobile.droid.entities.task.TaskRelations
 import ru.telecor.gm.mobile.droid.model.BuildVersion
 import ru.telecor.gm.mobile.droid.ui.about.AboutActivity
 import ru.telecor.gm.mobile.droid.ui.dumping.DumpingFragment
@@ -143,10 +144,10 @@ object Screens {
         }
     }
 
-    data class TaskCompleted(val taskId: Int) : SupportAppScreen() {
+    data class TaskCompleted(val taskId: Int, val listTask: List<TaskRelations>) : SupportAppScreen() {
 
         override fun getFragment(): Fragment? {
-            return TaskCompletedFragment.newInstance(taskId)
+            return TaskCompletedFragment.newInstance(taskId, listTask)
         }
     }
     // endregion

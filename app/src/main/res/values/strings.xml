@@ -454,7 +454,6 @@
     <string name="message_address">Семилуки,\n улица Автомобилистов 4 (Казань)</string>
     <string name="message_complete_text_title">Вы хотите завершить работы \n на площадке?</string>
     <string name="mas_action_text">Массовое действие \nневозможно</string>
-
-    // Error Message
+    <string name="non_pickup">НЕВЫВОЗ</string>
 
 </resources>
