@@ -95,7 +95,7 @@ class ProblemFragment(
     }
 
     private fun successFail() {
-//        problemDropDownSpinner.isVisible = true
+
     }
 
     fun successFailFilling() {
