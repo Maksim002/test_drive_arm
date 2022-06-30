@@ -123,4 +123,5 @@ class AboutActivity : BaseActivity(), AboutView {
             Uri.fromFile(file)
         }
     }
+
 }
