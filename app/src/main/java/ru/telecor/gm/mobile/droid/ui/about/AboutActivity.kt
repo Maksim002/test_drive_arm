@@ -82,7 +82,6 @@ class AboutActivity : BaseActivity(), AboutView {
         }else{
             tvLastVersionBeta.text = newestVersion
         }
-
     }
 
     override fun showUpdateDialog(version: BuildVersion) {
