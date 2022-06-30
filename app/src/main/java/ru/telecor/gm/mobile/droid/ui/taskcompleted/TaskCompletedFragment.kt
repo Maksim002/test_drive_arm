@@ -122,4 +122,5 @@ class TaskCompletedFragment : BaseFragment(), TaskCompletedView {
     override fun setLoadingState(value: Boolean) {
         pbLoading.visible(value)
     }
+
 }
