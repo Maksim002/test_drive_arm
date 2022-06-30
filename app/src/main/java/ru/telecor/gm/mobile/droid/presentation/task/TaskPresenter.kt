@@ -240,11 +240,19 @@ class TaskPresenter @Inject constructor(
                 viewState.setAddress(localTaskCache.visitPoint?.name.emptyIfNull())
                 when (localTaskCache.visitPoint?.pointType?.name) {
                     VisitPointType.Type.Parking -> viewState.setLastTaskMode(true)
-                    VisitPointType.Type.Empty -> {
-                    }
-                    VisitPointType.Type.Fueling -> {
-                    }
-                    else -> {
+                    VisitPointType.Type.Empty -> {}
+                    VisitPointType.Type.Fueling -> {}
+                    else -> {}
+                }
+                localTaskCache.visitPoint?.let {
+                    if (isMapReady) {
+                        viewState.showMapLocation(
+                            it.latitude,
+                            it.longitude,
+                            null,
+                            it.evacuationPoint.geoJson,
+                            it.evacuationPoint.routeToRoad
+                        )
                     }
                 }
                 viewState.setLastTaskMode(true)
@@ -290,10 +298,8 @@ class TaskPresenter @Inject constructor(
                 it.containerType,
                 it.garbageType,
                 localTaskCache.containerAction,
-                // TODO: 27.05.2022 Заполняет модель коментариями, рнаботает не правельно
                 if (supportedGarbageType) localTaskCache.taskItems.filter { ti -> ti.containerTypeId == it.containerType.id }
                     .map { item -> item.planCount }.sum() else it.count,
-                // TODO: нужно тут поставить определитель ilim continue
                 supportedGarbageType,
                 null,
                 localTaskCache.taskItems.filter { ti -> ti.containerTypeId == it.containerType.id },
@@ -342,6 +348,7 @@ class TaskPresenter @Inject constructor(
                 )
             }
             localTaskCache.visitPoint?.let {
+
                 viewState.startNavigationApplication(
                     it.latitude,
                     it.longitude

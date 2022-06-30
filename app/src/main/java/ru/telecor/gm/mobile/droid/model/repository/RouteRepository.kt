@@ -257,16 +257,15 @@ class RouteRepository @Inject constructor(
     }
 
 
-
     suspend fun getFlightTicketModel(id: Long?): Result<List<GetListCouponsModel>> {
         id?.let {
-            if (it > 0){
+            if (it > 0) {
                 return safeApiCall {
                     return@safeApiCall api.flightTicket(it)
                 }
             }
         }
-        return  Result.Error(Exception("Текущее задание не установлено"))
+        return Result.Error(Exception("Текущее задание не установлено"))
     }
 
     fun getRoutes(): Result<List<RouteInfo>> {
@@ -296,7 +295,7 @@ class RouteRepository @Inject constructor(
     }
 
     suspend fun removeTask(task: TaskExtended) {
-        if(task.order < 1000){
+        if (task.order < 1000) {
             taskExtendedDao.delete(task)
             if (currentTaskCache == task) currentTaskCache = null
             recalculateCurrentTask()
@@ -545,7 +544,7 @@ class RouteRepository @Inject constructor(
 
         }.toMutableList()
 
-        if (extendedTasks.size > 0){
+        if (extendedTasks.size > 0) {
 
             val oldRouteTasksIds = currentRouteTasksCache?.map { it.id } ?: listOf()
 
@@ -646,9 +645,11 @@ class RouteRepository @Inject constructor(
             taskProcessingResultDao.getAll()?.mapNotNull { it.standResults?.first()?.id?.toInt() }
                 ?: listOf()
 
-        currentTaskCache = currentRouteTasksCache?.firstOrNull() {
-            taskExtendedDao.updateIsCurrent()
-            it.statusType == StatusType.NEW && it.id !in idsInProcessing
+        currentRouteTasksCache?.let {
+            currentTaskCache = it.firstOrNull() {
+                taskExtendedDao.updateIsCurrent()
+                it.statusType == StatusType.NEW && it.id !in idsInProcessing
+            }
         }
     }
 
@@ -698,9 +699,10 @@ class RouteRepository @Inject constructor(
         taskProcessingResultDao.insert(taskResult)
 
     @DelicateCoroutinesApi
-    fun addTaskResultToDraftProcessingList(taskResult: TaskDraftProcessingResult) = GlobalScope.launch {
-        taskDraftProcessingResultDao.insert(taskResult)
-    }
+    fun addTaskResultToDraftProcessingList(taskResult: TaskDraftProcessingResult) =
+        GlobalScope.launch {
+            taskDraftProcessingResultDao.insert(taskResult)
+        }
 
     fun removeTaskFromProcessingList(taskResult: TaskProcessingResult) =
         GlobalScope.launch {
@@ -717,7 +719,7 @@ class RouteRepository @Inject constructor(
             TaskProcessingResult.ProcessingStatus.DELIVERED
         )
 
-     fun getTaskResultById(id: Long): TaskProcessingResult?  = taskProcessingResultDao.getById(id)
+    fun getTaskResultById(id: Long): TaskProcessingResult? = taskProcessingResultDao.getById(id)
 
     fun clearTaskProcessingList() =
         taskProcessingResultDao.updateAllProcessingStatus(TaskProcessingResult.ProcessingStatus.DELIVERED)
