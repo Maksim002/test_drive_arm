@@ -101,6 +101,7 @@ class TaskFragment : BaseFragment(), TaskView {
     @SuppressLint("ClickableViewAccessibility")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        alertDialog.hide()
         initBuildingChronology()
         requireActivity().registerReceiver(batteryBroadcastReceiver, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
 

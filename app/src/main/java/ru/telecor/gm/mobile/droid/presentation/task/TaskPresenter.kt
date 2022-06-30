@@ -240,11 +240,19 @@ class TaskPresenter @Inject constructor(
                 viewState.setAddress(localTaskCache.visitPoint?.name.emptyIfNull())
                 when (localTaskCache.visitPoint?.pointType?.name) {
                     VisitPointType.Type.Parking -> viewState.setLastTaskMode(true)
-                    VisitPointType.Type.Empty -> {
-                    }
-                    VisitPointType.Type.Fueling -> {
-                    }
-                    else -> {
+                    VisitPointType.Type.Empty -> {}
+                    VisitPointType.Type.Fueling -> {}
+                    else -> {}
+                }
+                localTaskCache.visitPoint?.let {
+                    if (isMapReady) {
+                        viewState.showMapLocation(
+                            it.latitude,
+                            it.longitude,
+                            null,
+                            it.evacuationPoint.geoJson,
+                            it.evacuationPoint.routeToRoad
+                        )
                     }
                 }
                 viewState.setLastTaskMode(true)
@@ -340,6 +348,7 @@ class TaskPresenter @Inject constructor(
                 )
             }
             localTaskCache.visitPoint?.let {
+
                 viewState.startNavigationApplication(
                     it.latitude,
                     it.longitude
