@@ -67,17 +67,17 @@ class TaskCompletedAdapter(item: ArrayList<TaskItemPreviewData> = arrayListOf())
         }
 
         val doneCount =
-            item.taskResultData?.standResults?.firstOrNull()?.containerStatuses?.filter { rt -> rt.containerTypeId == item.containerType.id  && rt.statusType?.name.toString() != "FAILED"}?.size
-                ?: item.taskDraftData?.standResults?.firstOrNull()?.containerStatuses?.filter { rt -> rt.containerTypeId == item.containerType.id && rt.statusType?.name.toString() != "FAILED"}?.size
+            item.taskResultData?.standResults?.firstOrNull()?.containerStatuses?.filter { rt -> rt.containerTypeId == item.containerType.id && rt.statusType?.name.toString() != "FAILED" }?.size
+                ?: item.taskDraftData?.standResults?.firstOrNull()?.containerStatuses?.filter { rt -> rt.containerTypeId == item.containerType.id && rt.statusType?.name.toString() != "FAILED" }?.size
 
-        if (doneCount.toString().isNotEmpty()){
-            if (doneCount != 0){
-                unloadingElementsTxt.text = "${doneCount?:0} / ${item.count}"
+        if (doneCount.toString().isNotEmpty()) {
+            if (doneCount != 0) {
+                unloadingElementsTxt.text = "${doneCount ?: 0} / ${item.count}"
             }
-        }else{
+        } else {
             layout.backgroundTintList =
                 ContextCompat.getColorStateList(context, R.color.gray2)
-            unloadingElementsTxt.text = "${doneCount?:0} / ${item.count}"
+            unloadingElementsTxt.text = "${doneCount ?: 0} / ${item.count}"
         }
 
 
