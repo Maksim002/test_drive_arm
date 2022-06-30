@@ -1,19 +1,23 @@
 package ru.telecor.gm.mobile.droid.presentation.taskcompleted
 
+import android.view.View
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import ru.telecor.gm.mobile.droid.R
 import ru.telecor.gm.mobile.droid.entities.db.ProcessingPhoto
 import ru.telecor.gm.mobile.droid.entities.StatusType
+import ru.telecor.gm.mobile.droid.entities.TaskItemPhotoModel
 import ru.telecor.gm.mobile.droid.entities.TaskItemPreviewData
+import ru.telecor.gm.mobile.droid.entities.db.TaskDraftProcessingResult
 import ru.telecor.gm.mobile.droid.entities.db.TaskProcessingResult
 import ru.telecor.gm.mobile.droid.entities.db.TaskExtended
+import ru.telecor.gm.mobile.droid.entities.task.TaskRelations
 import ru.telecor.gm.mobile.droid.model.PhotoType
 import ru.telecor.gm.mobile.droid.model.interactors.PhotoInteractor
 import ru.telecor.gm.mobile.droid.model.interactors.RouteInteractor
 import ru.telecor.gm.mobile.droid.model.system.ResourceManager
 import ru.telecor.gm.mobile.droid.presentation.base.BasePresenter
+import ru.telecor.gm.mobile.droid.ui.login.fragment.setting.settingFunctionality.SettingBottomSheetFragment
 import javax.inject.Inject
 
 class TaskCompletedPresenter @Inject constructor(
@@ -24,19 +28,34 @@ class TaskCompletedPresenter @Inject constructor(
 
     private lateinit var localTaskCache: TaskExtended
     private var deliveredTask: TaskProcessingResult? = null
+    private lateinit var localTaskDraftProcessingResult: TaskDraftProcessingResult
+    private var localTaskProcessingResult: TaskProcessingResult? = null
 
     var taskId: Int = -1
 
     override fun attachView(view: TaskCompletedView?) {
         super.attachView(view)
-
         clearUI()
         deliveredTask = routeInteractor.getDeliveredTask(taskId.toLong())
 
         launch {
             val result = routeInteractor.getTaskById(taskId)
-
             handleResult(result, {
+                GlobalScope.launch {
+                    if (it.data.statusType == StatusType.NEW) {
+                        val taskDraftData =
+                            routeInteractor.getDraftByTaskID(taskId.toLong())
+                        handleResult(taskDraftData, { tdRes ->
+                            localTaskDraftProcessingResult = tdRes.data
+                            updateUI()
+                        }, {})
+                    } else {
+                        localTaskProcessingResult = routeInteractor.getTaskResultById(taskId.toLong())
+                        CoroutineScope(Dispatchers.Main).launch {
+                            updateUI()
+                        }
+                    }
+                }
                 localTaskCache = it.data
                 updateUI()
             }, {
@@ -48,9 +67,6 @@ class TaskCompletedPresenter @Inject constructor(
 
     private fun clearUI() {
         viewState.setAddress("")
-        viewState.setStatus("")
-        viewState.setContainerReason(false)
-        viewState.setReason("")
         viewState.setContainersList(emptyList())
         viewState.showListOfAfterPhoto(emptyList())
         viewState.showListOfBeforePhoto(emptyList())
@@ -64,14 +80,21 @@ class TaskCompletedPresenter @Inject constructor(
 
     private fun setActualInfo() {
         viewState.setAddress(localTaskCache.stand?.address ?: "")
-        viewState.setStatus(getStatus(localTaskCache.statusType))
-        viewState.setContainerReason(localTaskCache.statusType == StatusType.PARTIALLY)
-        viewState.setReason(deliveredTask?.failureReason?.name ?: "")
-        val ctList = localTaskCache.stand?.containerGroups?.filter { cg ->
-            localTaskCache.taskItems.map { ti -> ti.containerTypeId }.toList()
-                .contains(cg.containerType.id)
-        }?.distinct() ?: emptyList()
-        val supportedGarbageTypes = routeInteractor.startedRoute?.unit?.vehicle?.supportedGarbageTypes?.map { it.id }
+        val ctList =
+            localTaskCache.taskItems.mapNotNull { ti -> localTaskCache.stand?.containerGroups?.findLast {
+                    cG -> cG.containerType.id == ti.containerTypeId } }
+        var trDraft: TaskDraftProcessingResult? = null
+        if (::localTaskDraftProcessingResult.isInitialized) {
+            localTaskDraftProcessingResult.let { tD ->
+                if (tD.id == localTaskCache.id.toLong()) trDraft = tD
+            }
+        }
+        var tResult: TaskProcessingResult? = null
+        localTaskProcessingResult?.let { tD ->
+            if (tD.id == localTaskCache.id.toLong()) tResult = tD
+        }
+        val supportedGarbageTypes =
+            routeInteractor.startedRoute?.unit?.vehicle?.supportedGarbageTypes?.map { it.id }
         val finalList = ctList.map {
             val supportedGarbageType =
                 if (supportedGarbageTypes != null) it.garbageType.id in supportedGarbageTypes else true
@@ -81,8 +104,11 @@ class TaskCompletedPresenter @Inject constructor(
                 localTaskCache.containerAction,
                 if (supportedGarbageType) localTaskCache.taskItems.filter { ti -> ti.containerTypeId == it.containerType.id }
                     .map { item -> item.planCount }.sum() else it.count,
-                // TODO: нужно тут поставить определитель ilim continue
-                supportedGarbageType
+                supportedGarbageType,
+                statusType = getStatus(localTaskCache.statusType),
+                failureReason = deliveredTask?.failureReason?.name ?: "",
+                taskDraftData = trDraft,
+                taskResultData = tResult
             )
         }.toMutableList()
 
@@ -102,7 +128,11 @@ class TaskCompletedPresenter @Inject constructor(
         }
     }
 
-    private fun getStatus(statusType: StatusType): String {
+    fun onSettingsClicked() {
+        viewState.showSettingsMenu()
+    }
+
+    fun getStatus(statusType: StatusType): String {
         return when (statusType) {
             StatusType.SUCCESS -> rm.getString(R.string.task_completed_fragment_success)
             StatusType.PARTIALLY -> rm.getString(R.string.task_completed_fragment_partially)
