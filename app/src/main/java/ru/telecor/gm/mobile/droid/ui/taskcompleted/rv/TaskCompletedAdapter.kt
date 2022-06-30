@@ -82,7 +82,6 @@ class TaskCompletedAdapter(item: ArrayList<TaskItemPreviewData> = arrayListOf())
             unloadingElementsTxt.text = "${item.count}"
         }
 
-
         containerTxt.text = item.containerType.name
         garbageTxt.text = item.garbageType.name
     }
