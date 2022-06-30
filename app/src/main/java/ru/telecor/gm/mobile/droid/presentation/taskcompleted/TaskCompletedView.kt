@@ -1,19 +1,16 @@
 package ru.telecor.gm.mobile.droid.presentation.taskcompleted
 
 
-import ru.telecor.gm.mobile.droid.entities.db.ProcessingPhoto
+import ru.telecor.gm.mobile.droid.entities.TaskItemPhotoModel
 import ru.telecor.gm.mobile.droid.entities.TaskItemPreviewData
+import ru.telecor.gm.mobile.droid.entities.db.ProcessingPhoto
 import ru.telecor.gm.mobile.droid.presentation.base.BaseView
 
 interface TaskCompletedView : BaseView {
 
     fun setAddress(str: String)
 
-    fun setStatus(str: String)
-
-    fun setReason(str: String)
-
-    fun setContainerReason(boolean: Boolean)
+    fun showSettingsMenu()
 
     fun setContainersList(list: List<TaskItemPreviewData>)
 

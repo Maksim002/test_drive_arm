@@ -49,6 +49,7 @@ class RouteStandsPresenter @Inject constructor(
     var errorFlightTicketModel = MutableLiveData<String>()
     var getListCouponsModel = arrayListOf(GetListCouponsModel())
     var listItem = ArrayList<GetListCouponsModel>()
+    private var taskItemCon: List<TaskRelations> = arrayListOf()
 
     override fun onFirstViewAttach() {
         super.onFirstViewAttach()
@@ -120,7 +121,7 @@ class RouteStandsPresenter @Inject constructor(
                     tasks.map { t -> t.copy(task = t.task.copy(isCurrent = t.task.id == ct.data.id)) }
             }, {})
             filterAndSetTasksList(tasks, scrollToCurrent)
-
+            taskItemCon = tasks
         }
     }
 
@@ -256,7 +257,7 @@ class RouteStandsPresenter @Inject constructor(
                 router.replaceScreen(Screens.Task())
             }
             task.task.statusType != StatusType.NEW -> {
-                router.navigateTo(Screens.TaskCompleted(task.task.id))
+                router.navigateTo(Screens.TaskCompleted(task.task.id, taskItemCon))
             }
             else -> {
                 router.navigateTo(Screens.Task(task.task.id))
